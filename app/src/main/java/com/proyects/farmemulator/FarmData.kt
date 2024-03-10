@@ -6,12 +6,12 @@ import androidx.compose.runtime.setValue
 
 class FarmData(pType : PLANT_TYPE) {
     var stateCurrent : STATE by mutableStateOf(STATE.IDLE)
-    private var type : PLANT_TYPE by mutableStateOf(pType)
+    var type : PLANT_TYPE by mutableStateOf(pType)
     var sprites = updateSprites()
     fun nextState(){
         stateCurrent =
-            if(stateCurrent == STATE.FINAL) STATE.IDLE
-            else STATE.entries.toTypedArray()[stateCurrent.ordinal + 1]
+            if(stateCurrent.ordinal == STATE.entries.size - 1) STATE.entries[0]
+            else STATE.entries[stateCurrent.ordinal + 1]
     }
     private fun updateSprites(): Map<STATE, Int> {
         return when (type){
