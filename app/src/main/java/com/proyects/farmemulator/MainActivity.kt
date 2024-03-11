@@ -78,9 +78,10 @@ fun loadImageResource(id: Int): AsyncImagePainter {
         }.build()
 
     return rememberAsyncImagePainter(
-        ImageRequest.Builder(context).data(data = id )
-            .apply(block = { size(Size.ORIGINAL)
-            }).build(), imageLoader = imageLoader)
+        ImageRequest.Builder(context)
+            .data(data = id)
+            .apply(block = {size(Size.ORIGINAL)})
+            .build(), imageLoader = imageLoader)
 }
 
 @Composable
@@ -114,7 +115,7 @@ fun SpriteHandlerButton(buttonData : FarmData) {
     val config = LocalConfiguration.current
     return Box(
         modifier = Modifier
-            .height(config.screenHeightDp.dp / 2)
+            .height(config.screenHeightDp.dp / 1.785f)
             .width(config.screenWidthDp.dp / 2.5f)
             .border(border)
             .clickable(
@@ -135,8 +136,8 @@ fun SpriteHandlerButton(buttonData : FarmData) {
 
 @Composable
 fun Test(){
-
     LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+    HideSystemBars()
 
     val farms = remember { listOf(
             FarmData(PLANT_TYPE.P1),

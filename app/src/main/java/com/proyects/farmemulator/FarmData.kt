@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-
 @SuppressLint("MutableCollectionMutableState")
 class FarmData(pType : PLANT_TYPE) {
     var collected : MutableMap<PLANT_TYPE, Int> by mutableStateOf(mutableMapOf(
@@ -36,7 +35,6 @@ class FarmData(pType : PLANT_TYPE) {
         type = t
         sprites = updateSprites()
     }
-
 }
 
 fun collectFarmData(farmData: List<FarmData>) : Map<PLANT_TYPE, Int> {
