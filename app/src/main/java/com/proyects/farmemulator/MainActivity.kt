@@ -62,13 +62,13 @@ import coil.size.Size
 import kotlinx.coroutines.delay
 
 const val stageTime : Long = 3000
-var lastPressed : FarmData? = null
+var focus : FarmData? = null
 
 
 @Composable
 fun loadImageResource(id: Int): AsyncImagePainter {
-    val ct = LocalContext.current
-    val imageLoader = ImageLoader.Builder(ct)
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
         .components {
             if (SDK_INT >= 28) {
                 add(ImageDecoderDecoder.Factory())
@@ -78,7 +78,7 @@ fun loadImageResource(id: Int): AsyncImagePainter {
         }.build()
 
     return rememberAsyncImagePainter(
-        ImageRequest.Builder(ct).data(data = id )
+        ImageRequest.Builder(context).data(data = id )
             .apply(block = { size(Size.ORIGINAL)
             }).build(), imageLoader = imageLoader)
 }
@@ -101,21 +101,21 @@ fun StageSwapHandlerOf(data: FarmData){
 fun SpriteHandlerButton(buttonData : FarmData) {
 
     var border = BorderStroke(0.dp, Color.Unspecified)
-    if(buttonData ==  lastPressed){ border = BorderStroke(5.dp, Color.Black) }
+    if(buttonData ==  focus){ border = BorderStroke(5.dp, Color.Black) }
     val interactionSource = remember { MutableInteractionSource() }
 
     val lambda = {
         buttonData.nextState()
-        lastPressed = buttonData
+        focus = buttonData
     }
 
     val img = loadImageResource(id = buttonData.sprites[buttonData.stateCurrent]!!)
 
-    val context = LocalConfiguration.current
+    val config = LocalConfiguration.current
     return Box(
         modifier = Modifier
-            .height(context.screenHeightDp.dp / 2)
-            .width(context.screenWidthDp.dp / 2.5f)
+            .height(config.screenHeightDp.dp / 2)
+            .width(config.screenWidthDp.dp / 2.5f)
             .border(border)
             .clickable(
                 indication = null,
@@ -171,7 +171,7 @@ fun Test(){
             Text(text = "b state: " + farms[1].stateCurrent.toString() )
             Text(text = "c state: " + farms[2].stateCurrent.toString())
             Text(text = "d state: " + farms[3].stateCurrent.toString())
-            Text(text = "last pressed: " + lastPressed?.type)
+            Text(text = "last pressed: " + focus?.type)
             Text(text = "p1 collected: " + cropsCollected[PLANT_TYPE.P1])
             Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
             Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
