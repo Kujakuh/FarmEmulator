@@ -104,7 +104,7 @@ fun SpriteHandlerButton(buttonData : FarmData) {
 @Composable
 fun Test(){
 
-    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
     val a = remember { FarmData(PLANT_TYPE.P1) }
     val b = remember { FarmData(PLANT_TYPE.P2) }
     val c = remember { FarmData(PLANT_TYPE.P3) }
