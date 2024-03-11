@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.graphics.drawable.shapes.Shape
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Handler
 import androidx.activity.ComponentActivity
@@ -49,11 +50,38 @@ import com.proyects.farmemulator.ui.theme.FarmEmulatorTheme
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import coil.size.Size
 import kotlinx.coroutines.delay
 
 const val stageTime : Long = 3000
 var lastPressed : FarmData? = null
+
+
+@Composable
+fun loadImageResource(id: Int): AsyncImagePainter {
+    val ct = LocalContext.current
+    val imageLoader = ImageLoader.Builder(ct)
+        .components {
+            if (SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }.build()
+
+    return rememberAsyncImagePainter(
+        ImageRequest.Builder(ct).data(data = id )
+            .apply(block = { size(Size.ORIGINAL)
+            }).build(), imageLoader = imageLoader)
+}
 
 @Composable
 fun StageSwapHandlerOf(data: FarmData){
@@ -68,8 +96,10 @@ fun StageSwapHandlerOf(data: FarmData){
     }
 }
 
+
 @Composable
 fun SpriteHandlerButton(buttonData : FarmData) {
+
     var border = BorderStroke(0.dp, Color.Unspecified)
     if(buttonData ==  lastPressed){ border = BorderStroke(5.dp, Color.Black) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -78,7 +108,9 @@ fun SpriteHandlerButton(buttonData : FarmData) {
         buttonData.nextState()
         lastPressed = buttonData
     }
-    val img = painterResource(id = buttonData.sprites[buttonData.stateCurrent]!!)
+
+    val img = loadImageResource(id = buttonData.sprites[buttonData.stateCurrent]!!)
+
     val context = LocalConfiguration.current
     return Box(
         modifier = Modifier
@@ -105,43 +137,51 @@ fun SpriteHandlerButton(buttonData : FarmData) {
 fun Test(){
 
     LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
-    val a = remember { FarmData(PLANT_TYPE.P1) }
-    val b = remember { FarmData(PLANT_TYPE.P2) }
-    val c = remember { FarmData(PLANT_TYPE.P3) }
-    val d = remember { FarmData(PLANT_TYPE.P4) }
 
+    val farms = remember { listOf(
+            FarmData(PLANT_TYPE.P1),
+            FarmData(PLANT_TYPE.P2),
+            FarmData(PLANT_TYPE.P3),
+            FarmData(PLANT_TYPE.P4)
+        ) }
+
+    val cropsCollected = collectFarmData(farms)
 
     Row(modifier = Modifier){
         Column(modifier = Modifier) {
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = a)
+                SpriteHandlerButton(buttonData = farms[0])
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = b)
+                SpriteHandlerButton(buttonData = farms[1])
             }
         }
         Column(modifier = Modifier) {
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = c)
+                SpriteHandlerButton(buttonData = farms[2])
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = d)
+                SpriteHandlerButton(buttonData = farms[3])
             }
         }
 
         Column(Modifier
             .fillMaxSize()){
-            Text(text = "a state: " + a.stateCurrent.toString())
-            Text(text = "b state: " + b.stateCurrent.toString() )
-            Text(text = "c state: " + c.stateCurrent.toString())
-            Text(text = "d state: " + d.stateCurrent.toString())
+            Text(text = "a state: " + farms[0].stateCurrent.toString())
+            Text(text = "b state: " + farms[1].stateCurrent.toString() )
+            Text(text = "c state: " + farms[2].stateCurrent.toString())
+            Text(text = "d state: " + farms[3].stateCurrent.toString())
             Text(text = "last pressed: " + lastPressed?.type)
+            Text(text = "p1 collected: " + cropsCollected[PLANT_TYPE.P1])
+            Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
+            Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
+            Text(text = "p4 collected: " + cropsCollected[PLANT_TYPE.P4])
         }
     }
-    StageSwapHandlerOf(a)
-    StageSwapHandlerOf(b)
-    StageSwapHandlerOf(c)
-    StageSwapHandlerOf(d)
+    StageSwapHandlerOf(farms[0])
+    StageSwapHandlerOf(farms[1])
+    StageSwapHandlerOf(farms[2])
+    StageSwapHandlerOf(farms[3])
 }
 
 class MainActivity : ComponentActivity() {
