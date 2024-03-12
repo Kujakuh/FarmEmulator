@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -71,6 +72,7 @@ var cropsCollected = mutableMapOf(
     PLANT_TYPE.P3 to 0,
     PLANT_TYPE.P4 to 0
 )
+val grass = Color(0xFF80D313)
 
 fun collectCrop(farm : FarmData){
     cropsCollected[farm.type] = cropsCollected[farm.type]!! + 1
@@ -130,7 +132,7 @@ fun SpriteHandlerButton(buttonData : FarmData, uiUpdateFlag : MutableState<Boole
     val config = LocalConfiguration.current
     return Box(
         modifier = Modifier
-            .height(config.screenHeightDp.dp / 1.785f)
+            .height(config.screenHeightDp.dp / 1.75f)
             .width(config.screenWidthDp.dp / 2.5f)
             .border(border)
             .clickable(
@@ -171,16 +173,16 @@ fun FarmEmulatorGame(){
             FarmData(PLANT_TYPE.P1, "carrots")
     ) }
     Row(modifier = Modifier){
-        Column(modifier = Modifier) {
-            Row(modifier = Modifier){
+        Column(modifier = Modifier.fillMaxHeight().background(grass)) {
+            Row(modifier = Modifier.fillMaxHeight(0.5f)){
                 SpriteHandlerButton(buttonData = farms[0], uiUpdateFlag)
             }
             Row(modifier = Modifier){
                 SpriteHandlerButton(buttonData = farms[1], uiUpdateFlag)
             }
         }
-        Column(modifier = Modifier) {
-            Row(modifier = Modifier){
+        Column(modifier = Modifier.fillMaxHeight().background(grass)) {
+            Row(modifier = Modifier.fillMaxHeight(0.5f)){
                 SpriteHandlerButton(buttonData = farms[2], uiUpdateFlag)
             }
             Row(modifier = Modifier){
@@ -200,16 +202,32 @@ fun FarmEmulatorGame(){
                 Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
                 Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
                 Text(text = "p4 collected: " + cropsCollected[PLANT_TYPE.P4])
-                Column {
-                    Row {
-                        Button(onClick = { sow(PLANT_TYPE.P1) }) { Text(text = "P1") }
-                        Button(onClick = { sow(PLANT_TYPE.P2) }) { Text(text = "P2") }
+                Column{
+                    Row(modifier = Modifier.fillMaxHeight(0.5f)) {
+                        Button(
+                            onClick = { sow(PLANT_TYPE.P1) }, modifier = Modifier
+                                .fillMaxHeight()
+                        )
+                        { Text(text = "P1") }
+                        Button(
+                            onClick = { sow(PLANT_TYPE.P2) }, modifier = Modifier
+                                .fillMaxHeight()
+                        )
+                        { Text(text = "P2") }
                     }
                 }
-                Column {
-                    Row {
-                        Button(onClick = {sow(PLANT_TYPE.P3)}){Text(text = "P3")}
-                        Button(onClick = {sow(PLANT_TYPE.P4)}){Text(text = "P4")}
+                Column{
+                    Row (modifier = Modifier.fillMaxHeight()){
+                        Button(
+                            onClick = { sow(PLANT_TYPE.P3) }, modifier = Modifier
+                                .fillMaxHeight()
+                        )
+                        { Text(text = "P3") }
+                        Button(
+                            onClick = { sow(PLANT_TYPE.P4) }, modifier = Modifier
+                                .fillMaxHeight()
+                        )
+                        { Text(text = "P4") }
                     }
                 }
             }
@@ -226,6 +244,10 @@ fun FarmEmulatorGame(){
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        cropsCollected[PLANT_TYPE.P1] = 0
+        cropsCollected[PLANT_TYPE.P2] = 0
+        cropsCollected[PLANT_TYPE.P3] = 0
+        cropsCollected[PLANT_TYPE.P4] = 0
         setContent {
             FarmEmulatorTheme {
                 // A surface container using the 'background' color from the theme
