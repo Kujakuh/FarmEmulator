@@ -1,57 +1,38 @@
 package com.proyects.farmemulator
 
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.pm.ActivityInfo
-import android.graphics.drawable.shapes.Shape
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
-import android.os.Handler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absoluteOffset
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.proyects.farmemulator.ui.theme.FarmEmulatorTheme
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -72,14 +53,12 @@ var cropsCollected = mutableMapOf(
     PLANT_TYPE.P3 to 0,
     PLANT_TYPE.P4 to 0
 )
-val grass = Color(0xFF80D313)
-
-fun collectCrop(farm : FarmData){
-    cropsCollected[farm.type] = cropsCollected[farm.type]!! + 1
-}
+val grassColor = Color(0xFFABC270)
+val buttonColor = Color(0xFFFFD556)
+val uiColor = Color(0xFF856456)
 
 @Composable
-fun loadImageResource(id: Int): AsyncImagePainter {
+fun loadImageResource(id: Int, fade: Boolean = false): AsyncImagePainter {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -90,11 +69,11 @@ fun loadImageResource(id: Int): AsyncImagePainter {
             }
         }.build()
 
-    return rememberAsyncImagePainter(
-        ImageRequest.Builder(context)
-            .data(data = id)
-            .apply(block = {size(Size.ORIGINAL)})
-            .build(), imageLoader = imageLoader)
+    return rememberAsyncImagePainter(ImageRequest.Builder(context)
+        .data(data = id)
+        .crossfade(fade)
+        .apply(block = {size(Size.ORIGINAL)})
+        .build(), imageLoader = imageLoader)
 }
 
 @Composable
@@ -110,31 +89,40 @@ fun StageSwapHandlerOf(data: FarmData){
     }
 }
 
+fun sow(plant : PLANT_TYPE){
+    if(focus?.stateCurrent == STATE.IDLE){
+        focus?.changeTypeTo(plant)
+        focus?.nextState()
+    }
+}
 
 @Composable
-fun SpriteHandlerButton(buttonData : FarmData, uiUpdateFlag : MutableState<Boolean>){
+fun SpriteHandlerButton(buttonData: FarmData,
+    uiUpdateFlag: MutableState<Boolean>,
+    finalStages: Map<PLANT_TYPE, AsyncImagePainter>){
 
-    var border = BorderStroke(0.dp, Color.Unspecified)
-    if(buttonData ==  focus){ border = BorderStroke(5.dp, Color.Black) }
+    var border = R.drawable.blank
+    if(buttonData ==  focus){ border = R.drawable.finalselectframe }
     val interactionSource = remember { MutableInteractionSource() }
 
     val lambda = {
         focus = buttonData
         if(buttonData.stateCurrent == STATE.FINAL){
-            collectCrop(buttonData)
+            cropsCollected[buttonData.type] = cropsCollected[buttonData.type]!! + 1
             buttonData.nextState()
         }
         uiUpdateFlag.value = !uiUpdateFlag.value
     }
 
-    val img = loadImageResource(id = buttonData.sprites[buttonData.stateCurrent]!!)
+    val img = if (buttonData.stateCurrent != STATE.FINAL)
+                painterResource(id = buttonData.sprites[buttonData.stateCurrent]!!)
+              else finalStages[buttonData.type]!!
 
     val config = LocalConfiguration.current
     return Box(
         modifier = Modifier
             .height(config.screenHeightDp.dp / 1.75f)
             .width(config.screenWidthDp.dp / 2.5f)
-            .border(border)
             .clickable(
                 indication = null,
                 interactionSource = interactionSource,
@@ -144,72 +132,75 @@ fun SpriteHandlerButton(buttonData : FarmData, uiUpdateFlag : MutableState<Boole
     {
         Image(
             painter = img, contentDescription = "aaa",
-            contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxSize(),
         )
-        Text(text = buttonData.id, modifier = Modifier.absoluteOffset(x = 10.dp, y = 10.dp))
-    }
-}
-
-fun sow(plant : PLANT_TYPE){
-    if(focus?.stateCurrent == STATE.IDLE){
-        focus?.changeTypeTo(plant)
-        focus?.nextState()
+        Image(painter = loadImageResource(id = border, true), contentDescription = "a",
+            modifier = Modifier.fillMaxSize())
     }
 }
 
 @Composable
-fun FarmEmulatorGame(){
+fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
     LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
     HideSystemBars()
 
     val uiUpdateFlag = remember { mutableStateOf(true) }
 
     val farms = remember { listOf(
-            FarmData(PLANT_TYPE.P1, "tomatoes"),
-            FarmData(PLANT_TYPE.P1, "lettuce"),
-            FarmData(PLANT_TYPE.P1, "onions"),
-            FarmData(PLANT_TYPE.P1, "carrots")
+            FarmData(PLANT_TYPE.P1),
+            FarmData(PLANT_TYPE.P1),
+            FarmData(PLANT_TYPE.P1),
+            FarmData(PLANT_TYPE.P1)
     ) }
-    Row(modifier = Modifier){
-        Column(modifier = Modifier.fillMaxHeight().background(grass)) {
+    Row(modifier = Modifier.background(uiColor)){
+        Column(modifier = Modifier
+            .fillMaxHeight()
+            .background(grassColor)) {
             Row(modifier = Modifier.fillMaxHeight(0.5f)){
-                SpriteHandlerButton(buttonData = farms[0], uiUpdateFlag)
+                SpriteHandlerButton(buttonData = farms[0], uiUpdateFlag, finalStages)
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = farms[1], uiUpdateFlag)
+                SpriteHandlerButton(buttonData = farms[1], uiUpdateFlag, finalStages)
             }
         }
-        Column(modifier = Modifier.fillMaxHeight().background(grass)) {
+        Column(modifier = Modifier
+            .fillMaxHeight()
+            .background(grassColor)) {
             Row(modifier = Modifier.fillMaxHeight(0.5f)){
-                SpriteHandlerButton(buttonData = farms[2], uiUpdateFlag)
+                SpriteHandlerButton(buttonData = farms[2], uiUpdateFlag, finalStages)
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = farms[3], uiUpdateFlag)
+                SpriteHandlerButton(buttonData = farms[3], uiUpdateFlag, finalStages)
             }
         }
 
-        key(uiUpdateFlag.value){
-            Column(Modifier
-                .fillMaxSize()){
-                Text(text = "a state: " + farms[0].stateCurrent.toString())
-                Text(text = "b state: " + farms[1].stateCurrent.toString() )
-                Text(text = "c state: " + farms[2].stateCurrent.toString())
-                Text(text = "d state: " + farms[3].stateCurrent.toString())
-                Text(text = "last pressed: " + focus?.id)
-                Text(text = "p1 collected: " + cropsCollected[PLANT_TYPE.P1])
-                Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
-                Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
-                Text(text = "p4 collected: " + cropsCollected[PLANT_TYPE.P4])
+        Column(
+            Modifier
+                .fillMaxSize()
+                .absoluteOffset(x = 12.dp)
+                .background(uiColor))
+        {
+            Text(text = "a state: " + farms[0].stateCurrent.toString())
+            Text(text = "b state: " + farms[1].stateCurrent.toString() )
+            Text(text = "c state: " + farms[2].stateCurrent.toString())
+            Text(text = "d state: " + farms[3].stateCurrent.toString())
+            Text(text = "p1 collected: " + cropsCollected[PLANT_TYPE.P1])
+            Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
+            Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
+            Text(text = "p4 collected: " + cropsCollected[PLANT_TYPE.P4])
+
+            key(uiUpdateFlag.value){
                 Column{
                     Row(modifier = Modifier.fillMaxHeight(0.5f)) {
                         Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             onClick = { sow(PLANT_TYPE.P1) }, modifier = Modifier
                                 .fillMaxHeight()
                         )
                         { Text(text = "P1") }
                         Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             onClick = { sow(PLANT_TYPE.P2) }, modifier = Modifier
                                 .fillMaxHeight()
                         )
@@ -219,11 +210,13 @@ fun FarmEmulatorGame(){
                 Column{
                     Row (modifier = Modifier.fillMaxHeight()){
                         Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             onClick = { sow(PLANT_TYPE.P3) }, modifier = Modifier
                                 .fillMaxHeight()
                         )
                         { Text(text = "P3") }
                         Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             onClick = { sow(PLANT_TYPE.P4) }, modifier = Modifier
                                 .fillMaxHeight()
                         )
@@ -250,9 +243,14 @@ class MainActivity : ComponentActivity() {
         cropsCollected[PLANT_TYPE.P4] = 0
         setContent {
             FarmEmulatorTheme {
-                // A surface container using the 'background' color from the theme
+                val finalStages = mapOf(
+                    PLANT_TYPE.P1 to loadImageResource(id = R.drawable.utomatoesfinal),
+                    PLANT_TYPE.P2 to loadImageResource(id = R.drawable.ucebollasfinal),
+                    PLANT_TYPE.P3 to loadImageResource(id = R.drawable.ucalabazasfinal),
+                    PLANT_TYPE.P4 to loadImageResource(id = R.drawable.uberenjenasfinal)
+                )
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    FarmEmulatorGame()
+                    FarmEmulatorGame(finalStages)
                 }
             }
         }
@@ -263,6 +261,5 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun FarmPreview() {
     FarmEmulatorTheme {
-        FarmEmulatorGame()
     }
 }

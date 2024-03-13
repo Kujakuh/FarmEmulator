@@ -1,17 +1,12 @@
 package com.proyects.farmemulator
 
 import android.annotation.SuppressLint
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 @SuppressLint("MutableCollectionMutableState")
-class FarmData(pType : PLANT_TYPE, id: String) {
-    // DEBUG, REMOVE ON RELEASE
-    var id : String = id
-    // ------------------------
+class FarmData(pType : PLANT_TYPE) {
     var stateCurrent : STATE by mutableStateOf(STATE.IDLE)
     var type : PLANT_TYPE by mutableStateOf(pType)
     var sprites = updateSprites()
