@@ -1,5 +1,6 @@
 package com.proyects.farmemulator
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,10 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -62,8 +64,7 @@ val uiColor = Color(0xFF856456)
 val pixelFont = FontFamily((Font(R.font.pixelart, FontWeight.Normal)))
 
 @Composable
-fun loadImageResource(id: Int, fade: Boolean = false): AsyncImagePainter {
-    val context = LocalContext.current
+fun loadImageResource(id: Int, context : Context,fade: Boolean = false): AsyncImagePainter {
     val imageLoader = ImageLoader.Builder(context)
         .components {
             if (SDK_INT >= 28) {
@@ -93,17 +94,40 @@ fun StageSwapHandlerOf(data: FarmData){
     }
 }
 
-fun sow(plant : PLANT_TYPE){
+fun plant(plant : PLANT_TYPE, context: Context){
     if(focus?.stateCurrent == STATE.IDLE){
         focus?.changeTypeTo(plant)
         focus?.nextState()
+        val plantSound = android.media.MediaPlayer.create(context, R.raw.plant)
+        plantSound.start()
+    }
+}
+
+@Composable
+fun SeedButton(iconPressed : Int, iconRelease: Int, plant: PLANT_TYPE, contentDescription : String,
+                modifier: Modifier, context: Context){
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    return Box(
+        modifier = Modifier
+            .clickable(
+                indication = null,
+                interactionSource = interactionSource,
+                onClick = { plant(plant, context) }
+            )
+    ){
+        Image(painter = painterResource(id =
+        if (isPressed) iconPressed
+        else iconRelease),
+            contentDescription = contentDescription,
+            modifier = modifier)
     }
 }
 
 @Composable
 fun SpriteHandlerButton(buttonData: FarmData,
     uiUpdateFlag: MutableState<Boolean>,
-    finalStages: Map<PLANT_TYPE, AsyncImagePainter>){
+    finalStages: Map<PLANT_TYPE, AsyncImagePainter>, context: Context){
 
     var border = R.drawable.blank
     if(buttonData ==  focus){ border = R.drawable.finalselectframe }
@@ -114,6 +138,8 @@ fun SpriteHandlerButton(buttonData: FarmData,
         if(buttonData.stateCurrent == STATE.FINAL){
             cropsCollected[buttonData.type] = cropsCollected[buttonData.type]!! + 1
             buttonData.nextState()
+            val harvestSound = android.media.MediaPlayer.create(context, R.raw.harvest)
+            harvestSound.start()
         }
         uiUpdateFlag.value = !uiUpdateFlag.value
     }
@@ -139,14 +165,14 @@ fun SpriteHandlerButton(buttonData: FarmData,
             modifier = Modifier
                 .fillMaxSize(),
         )
-        Image(painter = loadImageResource(id = border, true),
+        Image(painter = loadImageResource(id = border, context, true),
             contentDescription = "Marco de seleccion",
             modifier = Modifier.fillMaxSize())
     }
 }
 
 @Composable
-fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
+fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>, context: Context){
     LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
     HideSystemBars()
 
@@ -163,20 +189,20 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
             .fillMaxHeight()
             .background(grassColor)) {
             Row(modifier = Modifier.fillMaxHeight(0.5f)){
-                SpriteHandlerButton(buttonData = farms[0], uiUpdateFlag, finalStages)
+                SpriteHandlerButton(buttonData = farms[0], uiUpdateFlag, finalStages, context)
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = farms[1], uiUpdateFlag, finalStages)
+                SpriteHandlerButton(buttonData = farms[1], uiUpdateFlag, finalStages, context)
             }
         }
         Column(modifier = Modifier
             .fillMaxHeight()
             .background(grassColor)) {
             Row(modifier = Modifier.fillMaxHeight(0.5f)){
-                SpriteHandlerButton(buttonData = farms[2], uiUpdateFlag, finalStages)
+                SpriteHandlerButton(buttonData = farms[2], uiUpdateFlag, finalStages, context)
             }
             Row(modifier = Modifier){
-                SpriteHandlerButton(buttonData = farms[3], uiUpdateFlag, finalStages)
+                SpriteHandlerButton(buttonData = farms[3], uiUpdateFlag, finalStages, context)
             }
         }
 
@@ -194,35 +220,47 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
                         .absoluteOffset(5.dp, 15.dp)
                 ) {
                     Column(modifier = Modifier.fillMaxWidth(0.5f)) {
-                        Image(painter = painterResource(id = R.drawable.botontomate),
+                        SeedButton(
+                            iconPressed = R.drawable.botontomatepressed,
+                            iconRelease = R.drawable.botontomate,
+                            plant = PLANT_TYPE.P1,
                             contentDescription = "Plantar tomate",
                             modifier = Modifier
-                                .clickable { sow(PLANT_TYPE.P1) }
                                 .fillMaxHeight(0.5f)
-                                .fillMaxWidth()
-                                .align(Alignment.CenterHorizontally))
-                        Image(painter = painterResource(id = R.drawable.botoncebolla),
+                                .fillMaxWidth(),
+                            context = context
+                        )
+                        SeedButton(
+                            iconPressed = R.drawable.botoncebollapressed,
+                            iconRelease = R.drawable.botoncebolla,
+                            plant = PLANT_TYPE.P2,
                             contentDescription = "Plantar cebolla",
                             modifier = Modifier
-                                .clickable { sow(PLANT_TYPE.P2) }
-                                .fillMaxSize()
-                                .align(Alignment.CenterHorizontally))
+                                .fillMaxHeight()
+                                .fillMaxWidth(),
+                            context = context
+                        )
                     }
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        Image(painter = painterResource(id = R.drawable.botoncalabaza),
+                        SeedButton(
+                            iconPressed = R.drawable.botoncalabazapressed,
+                            iconRelease = R.drawable.botoncalabaza,
+                            plant = PLANT_TYPE.P3,
                             contentDescription = "Plantar calabaza",
                             modifier = Modifier
-                                .clickable { sow(PLANT_TYPE.P3) }
                                 .fillMaxHeight(0.5f)
-                                .fillMaxWidth()
-                                .align(Alignment.CenterHorizontally))
-
-                        Image(painter = painterResource(id = R.drawable.botonberenjena),
+                                .fillMaxWidth(),
+                            context = context
+                        )
+                        SeedButton(
+                            iconPressed = R.drawable.botonberenjenapressed,
+                            iconRelease = R.drawable.botonberenjena,
+                            plant = PLANT_TYPE.P4,
                             contentDescription = "Plantar berenjena",
                             modifier = Modifier
-                                .clickable { sow(PLANT_TYPE.P4) }
-                                .fillMaxSize()
-                                .align(Alignment.CenterHorizontally))
+                                .fillMaxSize(),
+                            context = context
+                        )
                     }
                 }
             }
@@ -283,14 +321,15 @@ class MainActivity : ComponentActivity() {
         cropsCollected[PLANT_TYPE.P4] = 0
         setContent {
             FarmEmulatorTheme {
+                val context = LocalContext.current
                 val finalStages = mapOf(
-                    PLANT_TYPE.P1 to loadImageResource(id = R.drawable.utomatoesfinal),
-                    PLANT_TYPE.P2 to loadImageResource(id = R.drawable.ucebollasfinal),
-                    PLANT_TYPE.P3 to loadImageResource(id = R.drawable.ucalabazasfinal),
-                    PLANT_TYPE.P4 to loadImageResource(id = R.drawable.uberenjenasfinal)
+                    PLANT_TYPE.P1 to loadImageResource(id = R.drawable.utomatoesfinal, context),
+                    PLANT_TYPE.P2 to loadImageResource(id = R.drawable.ucebollasfinal, context),
+                    PLANT_TYPE.P3 to loadImageResource(id = R.drawable.ucalabazasfinal, context),
+                    PLANT_TYPE.P4 to loadImageResource(id = R.drawable.uberenjenasfinal, context)
                 )
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    FarmEmulatorGame(finalStages)
+                    FarmEmulatorGame(finalStages, context)
                 }
             }
         }

@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.proyects.farmemulator"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.coil.gif)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
