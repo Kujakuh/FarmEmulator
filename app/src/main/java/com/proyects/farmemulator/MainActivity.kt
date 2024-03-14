@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,6 +30,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -175,54 +178,57 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
             }
         }
 
-        Column(
-            Modifier
-                .fillMaxSize()
-                .absoluteOffset(x = 12.dp)
-                .background(uiColor))
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .absoluteOffset()
+            .background(uiColor))
         {
-            Text(text = "a state: " + farms[0].stateCurrent.toString())
-            Text(text = "b state: " + farms[1].stateCurrent.toString() )
-            Text(text = "c state: " + farms[2].stateCurrent.toString())
-            Text(text = "d state: " + farms[3].stateCurrent.toString())
-            Text(text = "p1 collected: " + cropsCollected[PLANT_TYPE.P1])
-            Text(text = "p2 collected: " + cropsCollected[PLANT_TYPE.P2])
-            Text(text = "p3 collected: " + cropsCollected[PLANT_TYPE.P3])
-            Text(text = "p4 collected: " + cropsCollected[PLANT_TYPE.P4])
-
             key(uiUpdateFlag.value){
-                Column{
-                    Row(modifier = Modifier.fillMaxHeight(0.5f)) {
-                        Button(
-                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                            onClick = { sow(PLANT_TYPE.P1) }, modifier = Modifier
-                                .fillMaxHeight()
-                        )
-                        { Text(text = "P1") }
-                        Button(
-                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                            onClick = { sow(PLANT_TYPE.P2) }, modifier = Modifier
-                                .fillMaxHeight()
-                        )
-                        { Text(text = "P2") }
+                Row(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .fillMaxHeight(0.7f)
+                        .fillMaxWidth()
+                        .absoluteOffset(5.dp, 15.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth(0.5f)) {
+                        Image(painter = painterResource(id = R.drawable.botontomate),
+                            contentDescription = "sdf",
+                            modifier = Modifier
+                                .clickable { sow(PLANT_TYPE.P1) }
+                                .fillMaxHeight(0.5f)
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally))
+                        Image(painter = painterResource(id = R.drawable.botoncebolla),
+                            contentDescription = "sdf",
+                            modifier = Modifier
+                                .clickable { sow(PLANT_TYPE.P2) }
+                                .fillMaxSize()
+                                .align(Alignment.CenterHorizontally))
+                    }
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Image(painter = painterResource(id = R.drawable.botoncalabaza),
+                            contentDescription = "sdf",
+                            modifier = Modifier
+                                .clickable { sow(PLANT_TYPE.P3) }
+                                .fillMaxHeight(0.5f)
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally))
+
+                        Image(painter = painterResource(id = R.drawable.botonberenjena),
+                            contentDescription = "sdf",
+                            modifier = Modifier
+                                .clickable { sow(PLANT_TYPE.P4) }
+                                .fillMaxSize()
+                                .align(Alignment.CenterHorizontally))
                     }
                 }
-                Column{
-                    Row (modifier = Modifier.fillMaxHeight()){
-                        Button(
-                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                            onClick = { sow(PLANT_TYPE.P3) }, modifier = Modifier
-                                .fillMaxHeight()
-                        )
-                        { Text(text = "P3") }
-                        Button(
-                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                            onClick = { sow(PLANT_TYPE.P4) }, modifier = Modifier
-                                .fillMaxHeight()
-                        )
-                        { Text(text = "P4") }
-                    }
-                }
+            }
+            Column (modifier = Modifier.absoluteOffset(25.dp, 60.dp)){
+                Text(text = "Tomates: " + cropsCollected[PLANT_TYPE.P1])
+                Text(text = "Cebollas: " + cropsCollected[PLANT_TYPE.P2])
+                Text(text = "Calabazas: " + cropsCollected[PLANT_TYPE.P3])
+                Text(text = "Berenjenas: " + cropsCollected[PLANT_TYPE.P4])
             }
         }
     }
