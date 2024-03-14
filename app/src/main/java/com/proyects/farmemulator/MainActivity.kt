@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,10 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.proyects.farmemulator.ui.theme.FarmEmulatorTheme
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
@@ -48,7 +48,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import kotlinx.coroutines.delay
 
-const val stageTime : Long = 3000
+const val stageTime : Long = 3500
 var focus : FarmData? = null
 var cropsCollected = mutableMapOf(
     PLANT_TYPE.P1 to 0,
@@ -57,8 +57,9 @@ var cropsCollected = mutableMapOf(
     PLANT_TYPE.P4 to 0
 )
 val grassColor = Color(0xFFABC270)
-val buttonColor = Color(0xFFFFD556)
 val uiColor = Color(0xFF856456)
+
+val pixelFont = FontFamily((Font(R.font.pixelart, FontWeight.Normal)))
 
 @Composable
 fun loadImageResource(id: Int, fade: Boolean = false): AsyncImagePainter {
@@ -134,11 +135,12 @@ fun SpriteHandlerButton(buttonData: FarmData,
     )
     {
         Image(
-            painter = img, contentDescription = "aaa",
+            painter = img, contentDescription = "Huerta de ${buttonData.type}",
             modifier = Modifier
                 .fillMaxSize(),
         )
-        Image(painter = loadImageResource(id = border, true), contentDescription = "a",
+        Image(painter = loadImageResource(id = border, true),
+            contentDescription = "Marco de seleccion",
             modifier = Modifier.fillMaxSize())
     }
 }
@@ -193,14 +195,14 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
                 ) {
                     Column(modifier = Modifier.fillMaxWidth(0.5f)) {
                         Image(painter = painterResource(id = R.drawable.botontomate),
-                            contentDescription = "sdf",
+                            contentDescription = "Plantar tomate",
                             modifier = Modifier
                                 .clickable { sow(PLANT_TYPE.P1) }
                                 .fillMaxHeight(0.5f)
                                 .fillMaxWidth()
                                 .align(Alignment.CenterHorizontally))
                         Image(painter = painterResource(id = R.drawable.botoncebolla),
-                            contentDescription = "sdf",
+                            contentDescription = "Plantar cebolla",
                             modifier = Modifier
                                 .clickable { sow(PLANT_TYPE.P2) }
                                 .fillMaxSize()
@@ -208,7 +210,7 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
                     }
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Image(painter = painterResource(id = R.drawable.botoncalabaza),
-                            contentDescription = "sdf",
+                            contentDescription = "Plantar calabaza",
                             modifier = Modifier
                                 .clickable { sow(PLANT_TYPE.P3) }
                                 .fillMaxHeight(0.5f)
@@ -216,7 +218,7 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
                                 .align(Alignment.CenterHorizontally))
 
                         Image(painter = painterResource(id = R.drawable.botonberenjena),
-                            contentDescription = "sdf",
+                            contentDescription = "Plantar berenjena",
                             modifier = Modifier
                                 .clickable { sow(PLANT_TYPE.P4) }
                                 .fillMaxSize()
@@ -224,11 +226,43 @@ fun FarmEmulatorGame(finalStages : Map<PLANT_TYPE, AsyncImagePainter>){
                     }
                 }
             }
-            Column (modifier = Modifier.absoluteOffset(25.dp, 60.dp)){
-                Text(text = "Tomates: " + cropsCollected[PLANT_TYPE.P1])
-                Text(text = "Cebollas: " + cropsCollected[PLANT_TYPE.P2])
-                Text(text = "Calabazas: " + cropsCollected[PLANT_TYPE.P3])
-                Text(text = "Berenjenas: " + cropsCollected[PLANT_TYPE.P4])
+            Column (modifier = Modifier.absoluteOffset(0.dp, 60.dp)){
+                Box(modifier = Modifier){
+                    Image(painter = painterResource(id = R.drawable.listtomate),
+                        contentDescription = "Numero total de tomates recolectados")
+                    Text(text = cropsCollected[PLANT_TYPE.P1].toString(),
+                        fontFamily = pixelFont, fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                            .absoluteOffset(140.dp, 13.dp),
+                        color = Color.White)
+                }
+                Box(modifier = Modifier){
+                    Image(painter = painterResource(id = R.drawable.listcebolla),
+                        contentDescription = "Numero total de cebollas recolectadas")
+                    Text(text = cropsCollected[PLANT_TYPE.P2].toString(),
+                        fontFamily = pixelFont, fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                            .absoluteOffset(140.dp, 13.dp),
+                        color = Color.White)
+                }
+                Box(modifier = Modifier){
+                    Image(painter = painterResource(id = R.drawable.listcalabaza),
+                        contentDescription = "Numero total de calabazas recolectadas")
+                    Text(text = cropsCollected[PLANT_TYPE.P3].toString(),
+                        fontFamily = pixelFont, fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                            .absoluteOffset(140.dp, 13.dp),
+                        color = Color.White)
+                }
+                Box(modifier = Modifier){
+                    Image(painter = painterResource(id = R.drawable.listberenjena),
+                        contentDescription = "Numero total de berenjenas recolectadas")
+                    Text(text = cropsCollected[PLANT_TYPE.P4].toString(),
+                        fontFamily = pixelFont, fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                            .absoluteOffset(140.dp, 13.dp),
+                        color = Color.White)
+                }
             }
         }
     }
@@ -260,12 +294,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FarmPreview() {
-    FarmEmulatorTheme {
     }
 }
